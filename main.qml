@@ -12,33 +12,31 @@ Window {
     title: qsTr("Hello World")
 
     ColumnLayout {
-         CircularGauge {
-            id: randomGauge
+        anchors.fill: parent
 
-            maximumValue: 360
-            minimumValue: 0
+        MotorGauge {
+            id: motorGauge
+            displayValue: 0
 
-            Behavior on value {
-                SpringAnimation {
-                    damping: 0.19
-                    spring:  1
-                    mass: 3
-                    modulus: 360
-                }
-            }
-
-            value: inputDial.value*720;
-
-            style: CircularGaugeStyle {
-                minimumValueAngle: 0
-                maximumValueAngle: 360
-             }
-
+            Layout.fillWidth: true
+            Layout.preferredHeight: 200
         }
 
+        Timer {
+            interval: 200
+            repeat:   true
+            running:  true
 
-         Dial {
+            onTriggered: {
+                motorGauge.displayValue += inputDial.value*36
+            }
+        }
+
+        Dial {
             id: inputDial
-         }
-  }
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            tickmarksVisible: true
+        }
+
+    }
 }

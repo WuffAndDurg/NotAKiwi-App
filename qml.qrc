@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>MotorGauge.qml</file>
+        <file>MotorGaugeNeedle.qml</file>
     </qresource>
 </RCC>
