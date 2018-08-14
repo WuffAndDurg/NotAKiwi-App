@@ -1,42 +1,43 @@
 import QtQuick 2.7
-import QtQuick.Window 2.2
-import QtQuick.Controls 2.0
+import QtQuick.Window 2.11
+import QtQuick.Controls 2.4
 import QtQuick.Controls.Styles 1.4
-import QtQuick.Extras 1.4
+import QtQuick.Controls.Material 2.2
 import QtQuick.Layouts 1.3
 
-Window {
+import QtCharts 2.2
+
+import "QML/Views"
+
+Item {
+    id: window
     visible: true
-    width: 640
-    height: 480
-    title: qsTr("Hello World")
 
-    ColumnLayout {
-        anchors.fill: parent
+    Material.theme: Material.Dark
 
-        MotorGauge {
-            id: motorGauge
-            displayValue: 0
+	 implicitWidth:  360
+	 implicitHeight: 592
 
-            Layout.fillWidth: true
-            Layout.preferredHeight: 200
-        }
+	 anchors.fill: parent;
 
-        Timer {
-            interval: 200
-            repeat:   true
-            running:  true
+	 Component.onCompleted: {
+		  console.log("Screen size and DPI:", Screen.width, Screen.height, Screen.pixelDensity)
+	 }
 
-            onTriggered: {
-                motorGauge.displayValue += inputDial.value*36
-            }
-        }
+    Rectangle {
+		  anchors.fill: parent;
+        color: Material.background
+    }
 
-        Dial {
-            id: inputDial
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-            tickmarksVisible: true
-        }
+    SwipeView {
+        anchors.fill: parent;
 
+        TestPage {}
+
+        LZRTagPage {}
+
+		  PositionChart {}
+
+		  TouchControl {}
     }
 }

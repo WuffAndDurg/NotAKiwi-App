@@ -1,7 +1,12 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>MotorGauge.qml</file>
-        <file>MotorGaugeNeedle.qml</file>
+        <file>LZRTagPage.qml</file>
+        <file>TestPage.qml</file>
+        <file>QML/Views/MotorGauge.qml</file>
+        <file>QML/Views/MotorGaugeNeedle.qml</file>
+        <file>QML/Views/PositionChart.qml</file>
+        <file>QML/Views/AlertBox.qml</file>
+        <file>QML/Views/TouchControl.qml</file>
     </qresource>
 </RCC>
