@@ -16,6 +16,9 @@ SOURCES += \
         main.cpp \
 		  MQTTEst/systemmqtttest.cpp \
 		  LZRTag/lasertagclient.cpp \
+    BaseCode/robot.cpp \
+    BaseCode/motor.cpp \
+    BaseCode/baserobot.cpp
 
 RESOURCES += qml.qrc
 
@@ -33,3 +36,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     MQTTEst/systemmqtttest.h \
     LZRTag/lasertagclient.h \
+    BaseCode/robot.h \
+    BaseCode/motor.h \
+    BaseCode/baserobot.h
