@@ -3,12 +3,18 @@ import QtQuick 2.0
 import QtCharts 2.0
 
 ChartView {
-
 	 property real robotXPos: 0
 	 property real robotYPos: 0
 
 	 property real smoothXPos: robotXPos
 	 property real smoothYPos: robotYPos
+
+    function updatePoint() {
+        point.append(robotXPos, robotYPos);
+    }
+    function clear() {
+        point.clear();
+    }
 
 	 Behavior on smoothXPos {
 		  SmoothedAnimation {
@@ -32,26 +38,23 @@ ChartView {
 
 	 ValueAxis {
 		  id:   xAxis
-		  min:  smoothXPos - width/2
-		  max:  smoothXPos + width/2
+          min:  smoothXPos - width*2
+          max:  smoothXPos + width*2
 	 }
 
 	 ValueAxis {
 		  id: yAxis
-		  min:  smoothYPos - height/2
-		  max:  smoothYPos + height/2
+          min:  smoothYPos - height*2
+          max:  smoothYPos + height*2
 	 }
 
-	 ScatterSeries {
+     LineSeries {
 		  axisX: xAxis
 		  axisY: yAxis
 
 		  id: point
 
-		  XYPoint {
-				x: robotXPos
-				y: robotYPos
-		  }
+          useOpenGL: true;
 	 }
 
 	 MouseArea {
@@ -62,27 +65,27 @@ ChartView {
 		  width:  plotArea.width
 		  height: plotArea.height
 
-		  Timer {
-				interval: 100
-				repeat:   true
-				running: chartTouchy.containsMouse
+//		  Timer {
+//				interval: 100
+//				repeat:   true
+//				running: chartTouchy.containsMouse
 
-				onTriggered: chartTouchy.updateFromEvent();
-		  }
+//				onTriggered: chartTouchy.updateFromEvent();
+//		  }
 
-		  function updateFromEvent() {
+//		  function updateFromEvent() {
 
-				var xPos = xAxis.min + (chartTouchy.mouseX/width)*(xAxis.max - xAxis.min)
-				var yPos = yAxis.max - (chartTouchy.mouseY/height)*(yAxis.max - yAxis.min)
+//				var xPos = xAxis.min + (chartTouchy.mouseX/width)*(xAxis.max - xAxis.min)
+//				var yPos = yAxis.max - (chartTouchy.mouseY/height)*(yAxis.max - yAxis.min)
 
-				console.log("I got position:", xPos, yPos)
+//				console.log("I got position:", xPos, yPos)
 
-				robotXPos = xPos;
-				robotYPos = yPos;
+//				robotXPos = xPos;
+//				robotYPos = yPos;
 
-				point.clear();
-				point.append(xPos, yPos);
-		  }
+//				point.clear();
+//				point.append(xPos, yPos);
+//		  }
 	 }
 }
 
