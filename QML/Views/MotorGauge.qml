@@ -7,10 +7,10 @@ import QtQuick.Layouts 1.3
 import QtQuick.Shapes 1.11
 
 AlertBox {
-    title: "Motor!"
-
     property real displayValue
     property real speed
+
+    autohideBorder: false;
 
     implicitHeight: 400
     implicitWidth:  300
@@ -19,7 +19,9 @@ AlertBox {
         id: columnLayout
 
         anchors.fill: parent;
+        anchors.margins: 4;
 
+        layoutDirection: Qt.RightToLeft
         columns: width < height ? 1 : 2
 
         Item {
@@ -75,13 +77,15 @@ AlertBox {
 					 }
 
 					 Behavior on value {
-						  SpringAnimation {
+                          SpringAnimation {
 								id: smoothAnimation
-								damping: 0.08
-								spring:  3
+                                damping: 0.15
+                                spring:  1
 								mass:    0.3
 
 								modulus: 100
+
+                                epsilon: 0.5;
 						  }}
 				}
 
@@ -100,36 +104,79 @@ AlertBox {
                     minimumValueAngle: 0
                     maximumValueAngle: 360
 
-						  tickmarkStepSize: 0
+                    tickmarkStepSize: 0
 
-						  needle: Shape {
-								scale: outerRadius/85
+                    needle: Shape {
+                        scale: outerRadius/85
 
-								ShapePath {
-									 fillColor:   Material.color(Material.Blue);
-									 strokeColor: Material.color(Material.Blue, Material.Shade600);
+                        ShapePath {
+                            fillColor:   Material.color(Material.Blue);
+                            strokeColor: Material.color(Material.Blue, Material.Shade600);
 
-									 PathLine { x: -8; y: -50 }
-									 PathLine { x: 0;   y: -60 }
-									 PathLine { x: 8;  y: -50 }
-									 PathLine { x: 0;   y: 0 }
-								}
-						  }
+                            PathLine { x: -8; y: -50 }
+                            PathLine { x: 0;   y: -60 }
+                            PathLine { x: 8;  y: -50 }
+                            PathLine { x: 0;   y: 0 }
+                        }
+                    }
                 }
 
                 Behavior on value {
                     SpringAnimation {
-                        damping: 0.08
-                        spring:  3
+                        damping: 0.15
+                        spring:  1
                         mass: 0.3
 
                         modulus: 10
                     }
                 }
             }
+
+            CircularGauge {
+                id: speedGauge
+
+                anchors.fill: parent;
+
+                stepSize: 0
+
+                minimumValue: -360
+                maximumValue: 360
+
+                value: speed*360;
+
+                style: CircularGaugeStyle {
+                    minimumValueAngle: -3.6*(360/10)
+                    maximumValueAngle: 3.6*(360/10)
+
+                    tickmarkStepSize: 0
+
+                    needle: Shape {
+                        scale: outerRadius/100;
+
+                        ShapePath {
+                            fillColor: Material.color(Material.Red);
+                            strokeColor: fillColor;
+
+                            PathMove {x: 0;   y: -90}
+                            PathLine {x: 10;  y: -100}
+                            PathLine {x: -10; y: -100}
+                            PathLine {x: 0;   y: -90}
+                        }
+                    }
+                }
+
+                Behavior on value {
+                    SpringAnimation {
+                        damping: 0.15
+                        spring:  1
+                        mass: 0.3
+
+                        epsilon: 0.05;
+                    }
+                }
+            }
+
             MotorGaugeNeedle {
-                x: 176
-                y: 14
                 anchors.centerIn: parent
 					 width: Math.min(parent.width, parent.height)*0.5;
                 height: width
@@ -138,37 +185,16 @@ AlertBox {
 
                 Behavior on rotation {
                     SpringAnimation {
-                        damping: 0.3
-                        spring:  3
+                        damping: 0.15
+                        spring:  1
                         mass: 0.3
 
                         modulus: 360
+
+                        epsilon: 0.5;
                     }
                 }
             }
-        }
-
-        Gauge {
-            visible: false
-
-            id: gauge
-
-            Layout.preferredWidth:  30
-            Layout.preferredHeight: 30
-
-            Layout.fillWidth:  true
-            Layout.fillHeight: true
-
-            orientation: width < height ? Qt.Vertical : Qt.Horizontal
-
-            Behavior on value {
-                SmoothedAnimation {
-                    duration: 200;
-                    velocity: -1;
-                }
-            }
-
-            value: speed
         }
     }
 }
