@@ -7,7 +7,7 @@
 
 #include <QtMqtt/QtMqtt>
 
-#include "MQTTEst/systemmqtttest.h"
+#include "BaseCode/robot.h"
 #include "LZRTag/lasertagclient.h"
 
 int main(int argc, char *argv[])
@@ -18,18 +18,15 @@ int main(int argc, char *argv[])
     QQuickView viewer;
 
     QMqttClient mqttClient;
-    mqttClient.setHostname("xasin.hopto.org");
-    mqttClient.setUsername("Xasin");
-    mqttClient.setPassword(PASSWD);
+    mqttClient.setHostname("mqtt.local");
     mqttClient.setPort(1883);
+    mqttClient.setKeepAlive(5000);
 
     mqttClient.connectToHost();
 
-    SystemMQTTTest test(&mqttClient);
-    viewer.engine()->rootContext()->setContextProperty("system", &test);
-
-    LasertagClient blue(&mqttClient, "Blue");
-    viewer.engine()->rootContext()->setContextProperty("blue", &blue);
+    Robot robot(&mqttClient);
+    viewer.engine()->rootContext()->setContextProperty("robot", &robot);
+    qmlRegisterType<Motor>();
 
     QQuickStyle::setStyle("Material");
 
