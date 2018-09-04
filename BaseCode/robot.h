@@ -5,42 +5,42 @@
 
 #include <QtMqtt/QtMqtt>
 
+#include "baserobot.h"
 #include "motor.h"
 
-class Robot : public QObject
+class Robot : public BaseRobot
 {
     Q_OBJECT
+
+    Q_PROPERTY(bool   motorPower   MEMBER motorPower   WRITE setMotors NOTIFY motorPowerChanged)
+
+    Q_PROPERTY(QVariantMap position MEMBER robotPosition NOTIFY robotPositionChanged)
+
 public:
     explicit Robot(QMqttClient *client, QString name = "NotAKiwi", QObject *parent = nullptr);
-    explicit Robot~();
+    ~Robot();
 
-    Motor *getMotor(int i);
+    Q_INVOKABLE Motor *getMotor(int i);
+    Q_INVOKABLE void  setMotors(bool power);
+    Q_INVOKABLE void  setJoystick(float x, float y, float r);
+
+    bool motorPower;
+    QVariantMap robotPosition;
 
 signals:
-    void statusChanged(int newStatus);
-    void statusMessageChanged(QString &msg);
+    void motorPowerChanged(bool newPower);
 
-    void dataReceived(const QString &key, const QByteArray);
+    void robotPositionChanged(QVariantMap nextPosition);
 
 public slots:
-    void mqtt_onDataReceived(const QMqttMessage &msg);
-    void mqtt_onReconnected();
-    void mqtt_tryReconnect();
+    void processData(const QString &key, const QByteArray &data);
 
 private:
-    QMqttClient   *mqtt_client;
-    QTimer mqtt_reconnectTimer;
-
-    QString name;
-
     QString ESPStatus;
 
     Motor *motors[4];
 
-    int status;
-    QString statusMessage;
-
-    void recheckStatus();
+    bool partialStatusCheck();
 };
 
 #endif // ROBOT_H

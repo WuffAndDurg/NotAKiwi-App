@@ -1,70 +1,91 @@
 #include "robot.h"
 
-Robot::Robot(QMqttClient *client, QString name, QObject *parent) : QObject(parent),
-    mqtt_client(client), mqtt_reconnectTimer(),
-    name(name),
-    ESPStatus(""), status(-2), statusMessage("Loading...")
+Robot::Robot(QMqttClient *client, QString name, QObject *parent) :
+    BaseRobot (client, name, parent),
+    motorPower(false),
+    ESPStatus("")
 {
-    connect(client, &QMqttClient::connected, this, &Robot::mqtt_onReconnected);
-    connect(client, &QMqttClient::connected, &mqtt_reconnectTimer, &QTimer::stop);
-    connect(client, &QMqttClient::disconnected,     this, &Robot::mqtt_tryReconnect);
-    connect(&mqtt_reconnectTimer, &QTimer::timeout, this, &Robot::mqtt_tryReconnect);
-
-    mqtt_reconnectTimer.setSingleShot(true);
+    connect(this, &BaseRobot::dataReceived, this, &Robot::processData);
 
     for(uint8_t i=0; i<4; i++)
         motors[i] = new Motor(i, this);
+
+    robotPosition["x"] = 0;
+    robotPosition["y"] = 0;
+    robotPosition["r"] = 0;
 }
 Robot::~Robot() {
     for(uint8_t i=0; i<4; i++)
         delete motors[i];
 }
 
-void Robot::mqtt_onDataReceived(const QMqttMessage &msg) {
-    auto key = msg.topic().levels()[2];
+Motor *Robot::getMotor(int i) {
+    if(i > 4 || i < 0)
+        return nullptr;
 
-    emit dataReceived(key, msg.payload());
+    return motors[i];
 }
-void Robot::mqtt_onReconnected() {
-    recheckStatus();
 
-    auto sub = mqtt_client->subscribe(QString("Robots/%1").arg(name));
-    connect(sub, &QMqttSubscription::messageReceived, this, &Robot::mqtt_onDataReceived);
-}
-void Robot::mqtt_tryReconnect() {
-    recheckStatus();
-
-    if(mqtt_client->state() == QMqttClient::Connected)
+void Robot::setMotors(bool power) {
+    if(power == motorPower)
         return;
 
-    mqtt_client->connectToHost();
+    motorPower = power;
+    mqtt_client->publish(QString("Robots/%1/MotorPower").arg(name), power ? "1" : "0");
+    emit motorPowerChanged(power);
+}
+void Robot::setJoystick(float x, float y, float r) {
+#pragma pack(1)
+    short data[3] = {static_cast<short>(x*1000), static_cast<short>(y*1000), static_cast<short>(r*1000)};
+#pragma pack()
+    QByteArray outData = QByteArray(static_cast<char *>(static_cast<void *>(&data)), sizeof(data));
 
-    mqtt_reconnectTimer.start(500);
+    qDebug()<<"Sending joystick data:"<<outData<<" (size:"<<outData.length()<<")";
+    mqtt_client->publish(QString("Robots/%1/Joystick").arg(name), outData);
 }
 
-void Robot::recheckStatus() {
-    int     nextStatus = 0;
-    QString nextMsg("Connected");
-
-    if(mqtt_client->state() != QMqttClient::Connected) {
-        nextStatus = 2;
-        nextMsg = "Disconnected!";
+void Robot::processData(const QString &key, const QByteArray &data) {
+    if(key == "Status") {
+        ESPStatus = QString(data);
+        qDebug()<<"Next ESP-Status is" << ESPStatus;
+        recheckStatus();
     }
+    else if(key == "MotorPower") {
+        bool nextPower = (QString(data) == "1");
+        if(nextPower == motorPower)
+            return;
+        motorPower = nextPower;
+        emit motorPowerChanged(motorPower);
+    }
+    else if(key == "Position") {
+#pragma pack(1)
+        const void  *vData = data.constData();
+        const float *fData = static_cast<const float *>(vData);
+
+        robotPosition["x"] = fData[0];
+        robotPosition["y"] = fData[1];
+        robotPosition["r"] = fData[2];
+#pragma pack()
+
+        emit robotPositionChanged(robotPosition);
+    }
+}
+
+bool Robot::partialStatusCheck() {
+    if(BaseRobot::partialStatusCheck())
+        return true;
+
     else if(ESPStatus == "") {
-        nextStatus = -2;
-        nextMsg = "Waiting on ESP ...";
+        setStatus(-2);
+        setStatusMessage("Waiting on ESP ...");
+        return true;
     }
     else if(ESPStatus == "NO BOT") {
-        nextStatus = 1;
-        nextMsg = "Waiting on Robot ...";
+        setStatus(1);
+        setStatusMessage("Waiting on Robot ...");
+
+        return true;
     }
 
-    if(nextStatus != status) {
-        status = nextStatus;
-        emit statusChanged(status);
-    }
-    if(nextMsg != statusMessage) {
-        statusMessage = nextMsg;
-        emit statusMessageChanged(statusMessage);
-    }
+    return false;
 }
