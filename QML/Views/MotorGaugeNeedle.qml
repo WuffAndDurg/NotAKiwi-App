@@ -37,7 +37,7 @@ Item {
                 width:  height*1.4
 
                 x: -width/2
-                y: boundingCircle.radius - height
+                y: boundingCircle.radius - height*0.9
 
                 transform: Rotation {
                     origin.x: width/2
