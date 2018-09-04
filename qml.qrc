@@ -8,5 +8,6 @@
         <file>QML/Views/PositionChart.qml</file>
         <file>QML/Views/AlertBox.qml</file>
         <file>QML/Views/TouchControl.qml</file>
+        <file>FullscreenOverview.qml</file>
     </qresource>
 </RCC>

@@ -8,32 +8,19 @@ import "QML/Views"
 GridLayout {
     columns: 2
 
-    Timer {
-        repeat:     true
-        running:    true
-        interval:   200
+//    Timer {
+//        repeat:     true
+//        running:    true
+//        interval:   200
 
-        onTriggered: {
-            motorGauge.displayValue += inputDial.value*100;
-            motorGauge.speed = Math.abs(inputDial.value*1000);
-        }
-    }
-
-	 MotorGauge {
-		  alarmColor: inputDial.value == 0 ? -1 : Math.min(Math.floor(inputDial.value*1000 / 300), 3);
-
-		  Layout.fillWidth:  true
-		  Layout.fillHeight: true
-
-		  Layout.preferredHeight: 70
-		  Layout.preferredWidth:  50
-
-		  id: motorGauge
-		  displayValue: 0
-	 }
+//        onTriggered: {
+//            motorGauge.displayValue += inputDial.value*100;
+//            motorGauge.speed = Math.abs(inputDial.value*1000);
+//        }
+//    }
 
     Repeater {
-        model: 3
+        model: 4
 
         MotorGauge {
             Layout.fillWidth:  true
@@ -42,20 +29,32 @@ GridLayout {
             Layout.preferredHeight: 70
             Layout.preferredWidth:  50
 
-            displayValue: 0
+            property real maxSize: Math.min(width, height) * 1.2;
+            Layout.maximumHeight: maxSize;
+            Layout.maximumWidth:  maxSize;
+
+            displayValue: robot.getMotor(index).rotation;
+            speed: robot.getMotor(index).speed;
+
+            alarmColor: robot.getMotor(index).status;
+            statusMessage: robot.getMotor(index).statusMsg;
         }
     }
 
-    Dial {
-        Layout.fillHeight: true
-        Layout.fillWidth:  true
-
-        Layout.preferredHeight: 50
-        Layout.preferredWidth:  50
-
-        id: inputDial
-        Material.accent: Material.Green;
-
+    DelayButton {
+        id: delayButton
+        text: qsTr("Motor Power")
+        Layout.fillWidth: true
         Layout.columnSpan: 2
+
+        Material.accent: Material.Green
+
+        onCheckedChanged: robot.setMotors(checked);
+        Connections {
+            target: robot
+            onMotorPowerChanged: {
+                delayButton.checked = robot.motorPower;
+            }
+        }
     }
  }

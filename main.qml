@@ -9,11 +9,14 @@ import QtCharts 2.2
 
 import "QML/Views"
 
-Item {
+Rectangle {
     id: window
     visible: true
 
     Material.theme: Material.Dark
+    Material.accent: Material.Blue
+
+    color: Material.background
 
 	 implicitWidth:  360
 	 implicitHeight: 592
@@ -24,20 +27,79 @@ Item {
 		  console.log("Screen size and DPI:", Screen.width, Screen.height, Screen.pixelDensity)
 	 }
 
-    Rectangle {
-		  anchors.fill: parent;
-        color: Material.background
-    }
-
-    SwipeView {
+    AlertBox {
         anchors.fill: parent;
 
-        TestPage {}
+        alarmColor:    robot.status
+        statusMessage: robot.statusMessage
 
-        LZRTagPage {}
+        Item {
+            visible: width < 1000
+            anchors.fill: parent;
 
-		  PositionChart {}
+            TabBar {
+                id: tabSelector
 
-		  TouchControl {}
+                anchors.top:    parent.top
+                anchors.left:   parent.left;
+                anchors.right:  parent.right;
+
+                currentIndex: mainView.currentIndex;
+                onCurrentIndexChanged: {
+                    mainView.currentIndex = currentIndex;
+                }
+
+                anchors.margins: 5;
+
+                TabButton {
+                    text: "Stats."
+                }
+                TabButton {
+                    text: "Pos."
+                }
+                TabButton {
+                    text: "Joystick"
+                }
+            }
+
+            SwipeView {
+                id: mainView
+
+                interactive: (currentIndex < 2);
+
+                anchors.top:    tabSelector.bottom;
+                anchors.left:   parent.left;
+                anchors.right:  parent.right;
+                anchors.bottom: parent.bottom;
+
+                anchors.margins: 5
+
+                clip: true
+
+                TestPage {}
+
+                PositionChart {
+                    id: posChart
+                    robotXPos: robot.position["x"];
+                    robotYPos: robot.position["y"];
+
+                    Connections {
+                        target: robot
+                        onRobotPositionChanged: posChart.updatePoint();
+                    }
+                }
+
+                TouchControl {
+                    onJoystickUpdated: {
+                        robot.setJoystick(x, y, rotation);
+                    }
+                }
+            }
+        }
+
+        FullscreenOverview {
+            visible: width >= 1000;
+            anchors.fill: parent;
+        }
     }
 }
